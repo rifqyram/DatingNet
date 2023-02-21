@@ -3,7 +3,7 @@ using Enigma.DatingNet.Exceptions;
 using Enigma.DatingNet.Models.Requests;
 using Enigma.DatingNet.Models.Responses;
 using Enigma.DatingNet.Repositories;
-using Enigma.DatingNet.Utils;
+using Enigma.DatingNet.Securities;
 
 namespace Enigma.DatingNet.Services.Impls;
 
@@ -12,12 +12,14 @@ public class AuthService : IAuthService
     private readonly IRepository<MemberUserAccess> _repository;
     private readonly IPersistence _persistence;
     private readonly AuthUtil _authUtil;
+    private readonly IJwtUtils _jwtUtils;
 
-    public AuthService(IRepository<MemberUserAccess> repository, IPersistence persistence, AuthUtil authUtil)
+    public AuthService(IRepository<MemberUserAccess> repository, IPersistence persistence, AuthUtil authUtil, IJwtUtils jwtUtils)
     {
         _repository = repository;
         _persistence = persistence;
         _authUtil = authUtil;
+        _jwtUtils = jwtUtils;
     }
 
     public async Task<RegisterResponse> Register(AuthRequest request)
@@ -43,10 +45,13 @@ public class AuthService : IAuthService
         if (memberUser is null) throw new UnauthorizedException("Unauthorized");
         var verify = _authUtil.Verify(request.Password, memberUser.Password);
         if (!verify) throw new UnauthorizedException("Unauthorized");
+        
+        var token = _jwtUtils.GenerateToken(memberUser);
+
         return new LoginResponse
         {
             Username = memberUser.Username,
-            Token = Guid.NewGuid().ToString()
+            Token = token
         };
     }
 }

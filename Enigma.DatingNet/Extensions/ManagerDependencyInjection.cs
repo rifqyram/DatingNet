@@ -1,11 +1,11 @@
 using Enigma.DatingNet.Repositories;
 using Enigma.DatingNet.Repositories.Impls;
+using Enigma.DatingNet.Securities;
 using Enigma.DatingNet.Services;
 using Enigma.DatingNet.Services.Impls;
-using Enigma.DatingNet.Utils;
 using Microsoft.EntityFrameworkCore;
 
-namespace Enigma.DatingNet;
+namespace Enigma.DatingNet.Extensions;
 
 public static class ManagerDependencyInjection
 {
@@ -31,6 +31,7 @@ public static class ManagerDependencyInjection
             .AddTransient<IMemberPreferencesService, MemberPreferencesService>()
             .AddTransient<IMemberInterestService, MemberInterestService>()
             .AddTransient<IPartnerService, PartnerService>()
+            .AddTransient<IJwtUtils, JwtUtils>()
             .AddTransient(typeof(AuthUtil));
     }
 }

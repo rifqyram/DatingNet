@@ -48,3 +48,10 @@
 /Users/user/RiderProjects/Enigma.DatingNet/Enigma.DatingNet/bin/Debug/net6.0/System.Text.Encodings.Web.dll
 /Users/user/RiderProjects/Enigma.DatingNet/Enigma.DatingNet/bin/Debug/net6.0/System.Text.Json.dll
 /Users/user/RiderProjects/Enigma.DatingNet/Enigma.DatingNet/bin/Debug/net6.0/runtimes/browser/lib/net6.0/System.Text.Encodings.Web.dll
+/Users/user/RiderProjects/Enigma.DatingNet/Enigma.DatingNet/bin/Debug/net6.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
+/Users/user/RiderProjects/Enigma.DatingNet/Enigma.DatingNet/bin/Debug/net6.0/Microsoft.IdentityModel.JsonWebTokens.dll
+/Users/user/RiderProjects/Enigma.DatingNet/Enigma.DatingNet/bin/Debug/net6.0/Microsoft.IdentityModel.Logging.dll
+/Users/user/RiderProjects/Enigma.DatingNet/Enigma.DatingNet/bin/Debug/net6.0/Microsoft.IdentityModel.Protocols.dll
+/Users/user/RiderProjects/Enigma.DatingNet/Enigma.DatingNet/bin/Debug/net6.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+/Users/user/RiderProjects/Enigma.DatingNet/Enigma.DatingNet/bin/Debug/net6.0/Microsoft.IdentityModel.Tokens.dll
+/Users/user/RiderProjects/Enigma.DatingNet/Enigma.DatingNet/bin/Debug/net6.0/System.IdentityModel.Tokens.Jwt.dll

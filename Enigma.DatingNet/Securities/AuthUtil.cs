@@ -1,6 +1,5 @@
-using Enigma.DatingNet.Exceptions;
 
-namespace Enigma.DatingNet.Utils;
+namespace Enigma.DatingNet.Securities;
 
 public class AuthUtil
 {

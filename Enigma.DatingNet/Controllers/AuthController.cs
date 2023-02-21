@@ -3,11 +3,13 @@ using Enigma.DatingNet.Models.Requests;
 using Enigma.DatingNet.Models.Responses;
 using Enigma.DatingNet.Services;
 using Enigma.DatingNet.Services.Impls;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Enigma.DatingNet.Controllers;
 
 [Route("api/v1/auth")]
+[AllowAnonymous]
 public class AuthController : BaseController
 {
     private readonly IAuthService _authService;
