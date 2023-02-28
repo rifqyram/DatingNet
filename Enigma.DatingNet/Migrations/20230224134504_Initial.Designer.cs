@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Enigma.DatingNet.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230221152832_PartnerCreate")]
-    partial class PartnerCreate
+    [Migration("20230224134504_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -47,7 +47,7 @@ namespace Enigma.DatingNet.Migrations
                     b.Property<Guid>("MemberContactId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("m_member_contact_id");
+                        .HasColumnName("member_contact_id");
 
                     b.Property<string>("Email")
                         .IsRequired()

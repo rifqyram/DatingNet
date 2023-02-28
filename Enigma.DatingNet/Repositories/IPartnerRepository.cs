@@ -8,5 +8,12 @@ public interface IPartnerRepository
         Guid[] interestId, int page = 1, int size = 1);
 
     Task CreatePartner(Guid memberId, Guid partnerId);
+    Task<MemberPartner?> FindByMemberIdAndPartnerId(Guid memberId, Guid partnerId);
+
     Task<List<MemberPersonalInformation>> ListPartner(Guid memberId);
+
+    Task<int> CountAsync(Guid memberId,
+        string byGender,
+        int byStartAge,
+        int byEndAge);
 }

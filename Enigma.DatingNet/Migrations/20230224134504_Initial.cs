@@ -42,7 +42,7 @@ namespace Enigma.DatingNet.Migrations
                 name: "m_member_contact_info",
                 columns: table => new
                 {
-                    mmembercontactid = table.Column<Guid>(name: "m_member_contact_id", type: "uuid", nullable: false),
+                    membercontactid = table.Column<Guid>(name: "member_contact_id", type: "uuid", nullable: false),
                     mobilephonenumber = table.Column<string>(name: "mobile_phone_number", type: "text", nullable: false),
                     instagramid = table.Column<string>(name: "instagram_id", type: "text", nullable: true),
                     twitterid = table.Column<string>(name: "twitter_id", type: "text", nullable: true),
@@ -51,7 +51,7 @@ namespace Enigma.DatingNet.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_m_member_contact_info", x => x.mmembercontactid);
+                    table.PrimaryKey("PK_m_member_contact_info", x => x.membercontactid);
                     table.ForeignKey(
                         name: "FK_m_member_contact_info_m_member_user_access_member_id",
                         column: x => x.memberid,
@@ -83,6 +83,31 @@ namespace Enigma.DatingNet.Migrations
                         principalTable: "m_member_user_access",
                         principalColumn: "member_id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "m_member_partner",
+                columns: table => new
+                {
+                    memberpartnerid = table.Column<Guid>(name: "member_partner_id", type: "uuid", nullable: false),
+                    memberid = table.Column<Guid>(name: "member_id", type: "uuid", nullable: false),
+                    partnerid = table.Column<Guid>(name: "partner_id", type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_m_member_partner", x => x.memberpartnerid);
+                    table.ForeignKey(
+                        name: "FK_m_member_partner_m_member_user_access_member_id",
+                        column: x => x.memberid,
+                        principalTable: "m_member_user_access",
+                        principalColumn: "member_id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_m_member_partner_m_member_user_access_partner_id",
+                        column: x => x.partnerid,
+                        principalTable: "m_member_user_access",
+                        principalColumn: "member_id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -147,6 +172,16 @@ namespace Enigma.DatingNet.Migrations
                 column: "member_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_m_member_partner_member_id",
+                table: "m_member_partner",
+                column: "member_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_m_member_partner_partner_id",
+                table: "m_member_partner",
+                column: "partner_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_m_member_personal_info_member_id",
                 table: "m_member_personal_info",
                 column: "member_id");
@@ -165,6 +200,9 @@ namespace Enigma.DatingNet.Migrations
 
             migrationBuilder.DropTable(
                 name: "m_member_interest");
+
+            migrationBuilder.DropTable(
+                name: "m_member_partner");
 
             migrationBuilder.DropTable(
                 name: "m_member_personal_info");

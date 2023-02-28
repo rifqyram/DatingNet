@@ -1,3 +1,4 @@
+using System.Net;
 using Enigma.DatingNet.Entities;
 using Enigma.DatingNet.Exceptions;
 using Enigma.DatingNet.Models.Requests;
@@ -24,12 +25,15 @@ public class AuthService : IAuthService
 
     public async Task<RegisterResponse> Register(AuthRequest request)
     {
+        var mua = await LoadByUsername(request.Username);
+        if (mua is not null) throw new DuplicateDataException("Username already exist");
+        
         var memberUser = new MemberUserAccess
         {
-            Username = request.Username,
+            Username = request.Username.ToLower(),
             Password = _authUtil.HashPassword(request.Password),
             JoinDate = DateTime.Now,
-            VerificationStatus = "N",
+            VerificationStatus = "Y",
         };
         var memberUserSave = await _repository.SaveAsync(memberUser);
         await _persistence.SaveChangesAsync();
@@ -41,7 +45,7 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponse> Login(AuthRequest request)
     {
-        var memberUser = await _repository.FindAsync(access => access.Username.Equals(request.Username));
+        var memberUser = await _repository.FindAsync(access => access.Username.ToLower().Equals(request.Username.ToLower()));
         if (memberUser is null) throw new UnauthorizedException("Unauthorized");
         var verify = _authUtil.Verify(request.Password, memberUser.Password);
         if (!verify) throw new UnauthorizedException("Unauthorized");
@@ -53,5 +57,11 @@ public class AuthService : IAuthService
             Username = memberUser.Username,
             Token = token
         };
+    }
+
+    private async Task<MemberUserAccess> LoadByUsername(string username)
+    {
+        var mua = await _repository.FindAsync(access => access.Username.ToLower().Equals(username.ToLower()));
+        return mua;
     }
 }

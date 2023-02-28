@@ -27,6 +27,7 @@ public class JwtUtils : IJwtUtils
             IssuedAt = DateTime.Now,
             Subject = new ClaimsIdentity(new List<Claim>
             {
+                new(ClaimTypes.NameIdentifier, user.MemberId.ToString()),
                 new(ClaimTypes.Name, user.Username),
             }),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)

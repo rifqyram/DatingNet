@@ -23,6 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Resources\Images" />
       <Folder Include="Utils" />
     </ItemGroup>
 

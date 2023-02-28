@@ -4,7 +4,7 @@ namespace Enigma.DatingNet.Models.Responses;
 
 public class MemberPreferencesResponse
 {
-    public string MemberPreferenceId { get; set; } = string.Empty;
+    public string PreferenceId { get; set; } = string.Empty;
     public string LookingForGender { get; set; } = string.Empty;
     public string LookingForDomicile { get; set; } = string.Empty;
     public int LookingForStartAge { get; set; }

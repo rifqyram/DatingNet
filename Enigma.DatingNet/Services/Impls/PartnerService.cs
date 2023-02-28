@@ -22,7 +22,7 @@ public class PartnerService : IPartnerService
         _memberInterestService = memberInterestService;
     }
 
-    public async Task<List<MemberPersonalInfoResponse>> FindPartners(string memberId, int page)
+    public async Task<PageResponse<MemberPersonalInfoResponse>> FindPartners(string memberId, int page, int size)
     {
         if (!Guid.TryParse(memberId, out var guid)) throw new NotFoundException("Member not found");
 
@@ -33,24 +33,41 @@ public class PartnerService : IPartnerService
             memberPreference.LookingForGender,
             memberPreference.LookingForStartAge,
             memberPreference.LookingForEndAge,
-            findListMemberInterestByMemberId.Select(interest => interest.InterestId).ToArray(), page);
+            findListMemberInterestByMemberId.Select(interest => Guid.Parse(interest.InterestId)).ToArray(), page, size);
 
-        return memberPersonalInfos.Select(information => new MemberPersonalInfoResponse
+        var memberPersonalInfoResponse = memberPersonalInfos.Select(information => new MemberPersonalInfoResponse
         {
-            MemberPersonalInfoId = information.PersonalInformationId.ToString(),
+            PersonalInformationId = information.PersonalInformationId.ToString(),
             SelfDescription = information.SelfDescription,
             Bod = information.Bod,
             Gender = information.Gender,
             Name = information.Name,
-            RecentPhotoPath = information.RecentPhotoPath,
-            City = information.City
+            ProfilePicture = information.RecentPhotoPath,
+            City = information.City,
+            MemberId = information.MemberId.ToString()
         }).ToList();
+
+        var totalPages = (int)Math.Ceiling(await _partnerRepository.CountAsync(
+            guid,
+            memberPreference.LookingForGender,
+            memberPreference.LookingForStartAge,
+            memberPreference.LookingForEndAge) / (decimal)size);
+
+        return new PageResponse<MemberPersonalInfoResponse>
+        {
+            Content = memberPersonalInfoResponse,
+            TotalPages = totalPages,
+            TotalElement = memberPersonalInfoResponse.Count
+        };
     }
 
     public async Task CreateMemberPartner(PartnerRequest request)
     {
         if (!Guid.TryParse(request.MemberId, out var memberGuid)) throw new NotFoundException("Member not found");
         if (!Guid.TryParse(request.PartnerId, out var partnerGuid)) throw new NotFoundException("Partner not found");
+
+        var memberPartner = await _partnerRepository.FindByMemberIdAndPartnerId(memberGuid, partnerGuid);
+        if (memberPartner is not null) throw new DuplicateDataException("you already match this partner");
 
         await _partnerRepository.CreatePartner(memberGuid, partnerGuid);
         await _persistence.SaveChangesAsync();
@@ -62,12 +79,12 @@ public class PartnerService : IPartnerService
         var partners = await _partnerRepository.ListPartner(memberGuid);
         return partners.Select(information => new MemberPersonalInfoResponse
         {
-            MemberPersonalInfoId = information.PersonalInformationId.ToString(),
+            PersonalInformationId = information.PersonalInformationId.ToString(),
             SelfDescription = information.SelfDescription,
             Bod = information.Bod,
             Gender = information.Gender,
             Name = information.Name,
-            RecentPhotoPath = information.RecentPhotoPath,
+            ProfilePicture = information.RecentPhotoPath,
             City = information.City
         }).ToList();
     }

@@ -1,84 +1,60 @@
 using System.Net;
-using Enigma.DatingNet.Entities;
+using System.Security.Claims;
 using Enigma.DatingNet.Models.Requests;
 using Enigma.DatingNet.Models.Responses;
 using Enigma.DatingNet.Services;
 using Microsoft.AspNetCore.Mvc;
-using MasterInterestRequest = Enigma.DatingNet.Models.Requests.MasterInterestRequest;
 
 namespace Enigma.DatingNet.Controllers;
 
 [Route("api/v1/members")]
 public class MemberController : BaseController
 {
-    private readonly IMemberPersonalInfoService _memberPersonalInfoService;
-    private readonly IMemberContactInfoService _memberContactInfoService;
-    private readonly IMemberPreferencesService _preferencesService;
-    private readonly IMasterInterestService _interestService;
+    private readonly IMemberInfoService _memberInfoService;
+    private readonly IFileService _fileService;
 
-    public MemberController(IMemberPersonalInfoService memberPersonalInfoService,
-        IMemberContactInfoService memberContactInfoService, IMemberPreferencesService preferencesService, IMasterInterestService interestService)
+    public MemberController(IMemberInfoService memberInfoService, IFileService fileService)
     {
-        _memberPersonalInfoService = memberPersonalInfoService;
-        _memberContactInfoService = memberContactInfoService;
-        _preferencesService = preferencesService;
-        _interestService = interestService;
+        _memberInfoService = memberInfoService;
+        _fileService = fileService;
     }
 
-    [HttpPost("personal-info")]
-    public async Task<IActionResult> CreatePersonalInfo([FromForm] MemberPersonalInfoRequest request)
+    [HttpPut("{memberId}")]
+    public async Task<IActionResult> UpdateVerification(string memberId)
     {
-        var memberPersonalInfoResponse = await _memberPersonalInfoService.Create(request);
-        var response = new CommonResponse<MemberPersonalInfoResponse>
+        await _memberInfoService.VerificationUpdate(memberId);
+        var response = new CommonResponse<string>
         {
-            Code = (int)HttpStatusCode.Created,
-            Status = HttpStatusCode.Created.ToString(),
-            Message = "Successfully create personal info",
-            Data = memberPersonalInfoResponse
+            Code = (int)HttpStatusCode.OK,
+            Status = HttpStatusCode.OK.ToString(),
+            Message = "Successfully update verification",
         };
-        return Created("/api/v1/members/personal-info", response);
+        return Ok(response);
     }
 
-    [HttpPost("contact-info")]
-    public async Task<IActionResult> CreateContactInfo([FromBody] MemberContactInfoRequest request)
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMySelf()
     {
-        var memberContactInfoResponse = await _memberContactInfoService.Create(request);
-        var response = new CommonResponse<MemberContactInfoResponse>
+        var claim = User.Claims.FirstOrDefault(claim => claim.Type.Equals(ClaimTypes.Name));
+        if (claim is null) return Unauthorized();
+
+        var username = claim.Value;
+        var member = await _memberInfoService.GetByUsername(username);
+
+        var response = new CommonResponse<MemberInfoResponse>
         {
-            Code = (int)HttpStatusCode.Created,
-            Status = HttpStatusCode.Created.ToString(),
-            Message = "Successfully create contact info",
-            Data = memberContactInfoResponse
+            Code = (int)HttpStatusCode.OK,
+            Status = HttpStatusCode.OK.ToString(),
+            Message = "Successfully get self info",
+            Data = member
         };
-        return Created("/api/v1/members/contact-info", response);
+        return Ok(response);
     }
 
-
-    [HttpPost("preferences")]
-    public async Task<IActionResult> CreatePreferences([FromBody] MemberPreferencesRequest request)
+    [HttpGet("profile-picture")]
+    public async Task<IActionResult> DownloadImage([FromQuery] string path)
     {
-        var memberPreferencesResponse = await _preferencesService.Create(request);
-        var response = new CommonResponse<MemberPreferencesResponse>
-        {
-            Code = (int)HttpStatusCode.Created,
-            Status = HttpStatusCode.Created.ToString(),
-            Message = "Successfully create preferences",
-            Data = memberPreferencesResponse
-        };
-        return Created("/api/v1/members/preferences", response);
+        var file = await _fileService.DownloadFile(path);
+        return File(file.MemoryStream, file.ContentType, file.Filename);
     }
-
-    [HttpPost("interests")]
-    public async Task<IActionResult> CreateInterests([FromBody] List<MasterInterestRequest> requests)
-    {
-        var masterInterestsResponses = await _interestService.Create(requests);
-        var response = new CommonResponse<List<MasterInterestResponse>>
-        {
-            Code = (int)HttpStatusCode.Created,
-            Status = HttpStatusCode.Created.ToString(),
-            Message = "Successfully create interests",
-            Data = masterInterestsResponses
-        };
-        return Created("/api/v1/members/interests", response);
-    } 
 }

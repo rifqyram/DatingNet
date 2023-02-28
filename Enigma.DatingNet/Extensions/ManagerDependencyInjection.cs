@@ -1,3 +1,4 @@
+using Enigma.DatingNet.Middlewares;
 using Enigma.DatingNet.Repositories;
 using Enigma.DatingNet.Repositories.Impls;
 using Enigma.DatingNet.Securities;
@@ -32,6 +33,12 @@ public static class ManagerDependencyInjection
             .AddTransient<IMemberInterestService, MemberInterestService>()
             .AddTransient<IPartnerService, PartnerService>()
             .AddTransient<IJwtUtils, JwtUtils>()
+            .AddTransient<IMemberInfoService, MemberInfoService>()
             .AddTransient(typeof(AuthUtil));
+    }
+
+    public static void AddMiddlewares(this IServiceCollection services)
+    {
+        services.AddTransient<ExceptionHandlingMiddleware>();
     }
 }

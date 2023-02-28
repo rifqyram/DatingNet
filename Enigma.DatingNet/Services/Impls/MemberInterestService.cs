@@ -1,5 +1,7 @@
+using System.Collections;
 using Enigma.DatingNet.Entities;
 using Enigma.DatingNet.Exceptions;
+using Enigma.DatingNet.Models.Responses;
 using Enigma.DatingNet.Repositories;
 
 namespace Enigma.DatingNet.Services.Impls;
@@ -29,10 +31,34 @@ public class MemberInterestService : IMemberInterestService
         return memberInterest;
     }
 
-    public async Task<List<MemberInterest>> FindListByMemberId(string memberId)
+    public async Task<List<MemberInterestResponse>> FindListByMemberId(string memberId)
     {
         if (!Guid.TryParse(memberId, out var guid)) throw new NotFoundException("Member not found");
-        var memberInterests = await _repository.FindAllAsync(interest => interest.MemberId.Equals(guid));
-        return memberInterests.ToList();
+        var memberInterests = await _repository.FindAllAsync(interest => interest.MemberId.Equals(guid), new []{"Interest"});
+
+        var interests = memberInterests.ToList();
+        if (!interests.Any()) return new List<MemberInterestResponse>();
+
+        return interests.Select(interest => new MemberInterestResponse
+        {
+            MemberId = interest.MemberId.ToString(),
+            InterestId = interest.MemberId.ToString(),
+            Interest = interest.Interest!.Interest
+        }).ToList();
+    }
+
+    public async Task<List<MemberInterest>> FindAllByMemberId(string memberId)
+    {
+        if (!Guid.TryParse(memberId, out var guid)) throw new NotFoundException("Member not found");
+        var memberInterests = await _repository.FindAllAsync(interest => interest.MemberId.Equals(guid), new [] {"Interest"});
+        var interests = memberInterests.ToList();
+        return !interests.Any() ? new List<MemberInterest>() : interests.ToList();
+    }
+
+    public async Task DeleteAllByMemberId(string memberId)
+    {
+        var memberInterests = await FindAllByMemberId(memberId);
+        _repository.DeleteAll(memberInterests);
+        await _persistence.SaveChangesAsync();
     }
 }

@@ -6,7 +6,7 @@ namespace Enigma.DatingNet.Entities;
 [Table(name: "m_member_contact_info")]
 public class MemberContactInformation
 {
-    [Key, Column(name: "m_member_contact_id")]
+    [Key, Column(name: "member_contact_id")]
     public Guid MemberContactId { get; set; }
 
     [Column(name: "mobile_phone_number")] public string MobilePhoneNumber { get; set; } = null!;

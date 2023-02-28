@@ -1,10 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Security.Claims;
 using Enigma.DatingNet.Models.Requests;
 using Enigma.DatingNet.Models.Responses;
-using Enigma.DatingNet.Repositories;
 using Enigma.DatingNet.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Enigma.DatingNet.Controllers;
 
@@ -12,17 +12,20 @@ namespace Enigma.DatingNet.Controllers;
 public class PartnerController : BaseController
 {
     private readonly IPartnerService _partnerService;
-    
+
     public PartnerController(IPartnerService partnerService)
     {
         _partnerService = partnerService;
     }
 
-    [HttpGet("{memberId}")]
-    public async Task<IActionResult> GetPartners(string memberId, [FromQuery] int page = 1)
+    [HttpGet]
+    [SuppressMessage("ReSharper.DPA", "DPA0000: DPA issues")]
+    public async Task<IActionResult> GetPartners([FromQuery] int page = 1, int size = 5)
     {
-        var personalInfoResponses = await _partnerService.FindPartners(memberId, page);
-        var response = new CommonResponse<List<MemberPersonalInfoResponse>>
+        var claim = User.Claims.FirstOrDefault(c => c.Type.Equals(ClaimTypes.NameIdentifier));
+        if (claim is null) return Unauthorized();
+        var personalInfoResponses = await _partnerService.FindPartners(claim.Value, page, size);
+        var response = new CommonResponse<PageResponse<MemberPersonalInfoResponse>>
         {
             Code = (int)HttpStatusCode.OK,
             Status = HttpStatusCode.OK.ToString(),
@@ -33,8 +36,11 @@ public class PartnerController : BaseController
     }
 
     [HttpPost]
-    public async Task<IActionResult> ChoosePartner(PartnerRequest request)
+    public async Task<IActionResult> ChoosePartner([FromBody] PartnerRequest request)
     {
+        var claim = User.Claims.FirstOrDefault(c => c.Type.Equals(ClaimTypes.NameIdentifier));
+        if (claim is null) return Unauthorized();
+        request.MemberId = claim.Value;
         await _partnerService.CreateMemberPartner(request);
         var response = new CommonResponse<string>
         {
@@ -45,10 +51,12 @@ public class PartnerController : BaseController
         return Created("/api/v1/partners", response);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> ListPartner([FromQuery] string memberId)
+    [HttpGet("my-matches")]
+    public async Task<IActionResult> ListPartner()
     {
-        var partners = await _partnerService.ListPartner(memberId);
+        var claim = User.Claims.FirstOrDefault(c => c.Type.Equals(ClaimTypes.NameIdentifier));
+        if (claim is null) return Unauthorized();
+        var partners = await _partnerService.ListPartner(claim.Value);
         var response = new CommonResponse<List<MemberPersonalInfoResponse>>
         {
             Code = (int)HttpStatusCode.OK,
@@ -57,6 +65,5 @@ public class PartnerController : BaseController
             Data = partners
         };
         return Ok(response);
-
     }
 }

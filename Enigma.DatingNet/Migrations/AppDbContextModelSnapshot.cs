@@ -44,7 +44,7 @@ namespace Enigma.DatingNet.Migrations
                     b.Property<Guid>("MemberContactId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("m_member_contact_id");
+                        .HasColumnName("member_contact_id");
 
                     b.Property<string>("Email")
                         .IsRequired()

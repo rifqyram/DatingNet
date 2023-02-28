@@ -5,7 +5,7 @@ namespace Enigma.DatingNet.Services;
 
 public interface IPartnerService
 {
-    Task<List<MemberPersonalInfoResponse>> FindPartners(string memberId, int page);
+    Task<PageResponse<MemberPersonalInfoResponse>> FindPartners(string memberId, int page, int size);
     Task CreateMemberPartner(PartnerRequest request);
     Task<List<MemberPersonalInfoResponse>> ListPartner(string memberId);
 }

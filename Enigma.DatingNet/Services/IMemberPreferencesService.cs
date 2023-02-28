@@ -7,4 +7,5 @@ public interface IMemberPreferencesService
 {
     Task<MemberPreferencesResponse> Create(MemberPreferencesRequest request);
     Task<MemberPreferencesResponse> FindByMemberId(string memberId);
+    Task<MemberPreferencesResponse> Update(MemberPreferencesUpdateRequest request);
 }

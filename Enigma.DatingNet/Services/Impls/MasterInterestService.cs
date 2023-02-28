@@ -21,40 +21,46 @@ public class MasterInterestService : IMasterInterestService
         _memberInterestService = memberInterestService;
     }
 
-    public async Task<List<MasterInterestResponse>> Create(List<MasterInterestRequest> interests)
+    public async Task<List<MasterInterestResponse>> Create(MasterInterestRequest interests)
     {
-        var memberInterests = new List<MemberInterest>();
         var masterInterests = new List<MasterInterestResponse>();
 
-        foreach (var mir in interests)
+        foreach (var interestReq in interests.Interests)
         {
-            if (!Guid.TryParse(mir.MemberId, out var memberId)) throw new NotFoundException("Member not found");
+            if (!Guid.TryParse(interests.MemberId, out var memberId)) throw new NotFoundException("Member not found");
 
-            var currentMasterInterest = await _repository.FindAsync(interest => interest.Interest.ToLower().Equals(mir.Interest.ToLower()));
+            var currentMasterInterest =
+                await _repository.FindAsync(interest => interest.Interest.ToLower().Equals(interestReq.ToLower()));
+
             if (currentMasterInterest is not null)
             {
-                var memberInterest = await _memberInterestService.Create(memberId, currentMasterInterest.InterestId);
-                memberInterests.Add(memberInterest);
-                currentMasterInterest.MemberInterests = memberInterests;
+                await _persistence.ExecuteTransactionAsync(async () =>
+                {
+                    var memberInterest =
+                        await _memberInterestService.Create(memberId, currentMasterInterest.InterestId);
+                    currentMasterInterest.MemberInterests.Add(memberInterest);
+                    masterInterests.Add(new MasterInterestResponse
+                    {
+                        Interest = currentMasterInterest.Interest,
+                        InterestId = interests.MemberId
+                    });
+                    await _persistence.SaveChangesAsync();
+                    return true;
+                });
+                continue;
+            }
+
+            await _persistence.ExecuteTransactionAsync(async () =>
+            {
+                var masterInterest = await _repository.SaveAsync(new MasterInterest { Interest = interestReq });
+                await _memberInterestService.Create(memberId, masterInterest.InterestId);
+                await _persistence.SaveChangesAsync();
                 masterInterests.Add(new MasterInterestResponse
                 {
-                    Interest = currentMasterInterest.Interest,
-                    MemberId = mir.MemberId
+                    Interest = masterInterest.Interest,
+                    InterestId = interests.MemberId
                 });
-                await _persistence.SaveChangesAsync();
-                return masterInterests;
-            }
-            
-            var masterInterest = await _repository.SaveAsync(new MasterInterest
-            {
-                Interest = mir.Interest
-            });
-            await _memberInterestService.Create(memberId, masterInterest.InterestId);
-            await _persistence.SaveChangesAsync();
-            masterInterests.Add(new MasterInterestResponse
-            {
-                Interest = masterInterest.Interest,
-                MemberId = mir.MemberId
+                return true;
             });
         }
 
@@ -64,23 +70,46 @@ public class MasterInterestService : IMasterInterestService
     public async Task<MasterInterestResponse> FindById(string id)
     {
         if (!Guid.TryParse(id, out var guid)) throw new NotFoundException("Interest not found");
-        var masterInterest = await _repository.FindAsync(interest => interest.InterestId.Equals(guid), new []{"MemberInterests"});
+        var masterInterest = await _repository.FindAsync(interest => interest.InterestId.Equals(guid));
         if (masterInterest is null) throw new NotFoundException("Interest not found");
         return new MasterInterestResponse
         {
+            InterestId = masterInterest.InterestId.ToString(),
             Interest = masterInterest.Interest,
-            MemberId = masterInterest.MemberInterests.Select(interest => new string(interest.MemberId.ToString())).First()
         };
     }
 
     public async Task<MasterInterestResponse> FindByInterest(string interest)
     {
-        var masterInterest = await _repository.FindAsync(i => i.Interest.Equals(interest));
+        var masterInterest = await _repository.FindAsync(i => i.Interest.ToLower().Equals(interest.ToLower()));
         if (masterInterest is null) throw new NotFoundException("Interest not found");
         return new MasterInterestResponse
         {
+            InterestId = masterInterest.InterestId.ToString(),
             Interest = masterInterest.Interest,
-            MemberId = masterInterest.MemberInterests.Select(memberInterest => new string(memberInterest.MemberId.ToString())).First()
-        };;
+        };
+    }
+
+    public async Task<List<MasterInterestResponse>> GetAll()
+    {
+        var masterInterests = await _repository.FindAllAsync();
+        return masterInterests.Select(interest => new MasterInterestResponse
+        {
+            InterestId = interest.InterestId.ToString(),
+            Interest = interest.Interest,
+        }).ToList();
+    }
+
+    public async Task<List<MemberInterestResponse>> Update(MasterInterestRequest requests)
+    {
+        if (requests.MemberId is null) throw new NotFoundException("Member not found");
+        await _memberInterestService.DeleteAllByMemberId(requests.MemberId);
+        var masterInterestResponses = await Create(requests);
+        return masterInterestResponses.Select(response => new MemberInterestResponse
+        {
+            MemberId = requests.MemberId,
+            InterestId = response.InterestId,
+            Interest = response.Interest
+        }).ToList();
     }
 }

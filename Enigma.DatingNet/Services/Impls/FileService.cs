@@ -25,8 +25,10 @@ public class FileService : IFileService
 
         if (fileName is null) throw new Exception("fileName cannot be null");
 
-        var fullPath = Path.Combine(pathToSave, GetUniqueFileName(fileName));
-        var dbPath = Path.Combine(folderName, GetUniqueFileName(fileName));
+        var uniqueFileName = GetUniqueFileName(fileName);
+
+        var fullPath = Path.Combine(pathToSave, uniqueFileName);
+        var dbPath = Path.Combine(folderName, uniqueFileName);
 
         await using var stream = new FileStream(fullPath, FileMode.Create);
         await file.CopyToAsync(stream);
@@ -34,7 +36,7 @@ public class FileService : IFileService
         return dbPath;
     }
 
-    public async Task<FileDownloadResponse> DownloadFile(string filepath, string filename)
+    public async Task<FileDownloadResponse> DownloadFile(string filepath)
     {
         if (!CheckIfExist(filepath)) throw new NotFoundException("File not found");
 
@@ -47,7 +49,7 @@ public class FileService : IFileService
         {
             MemoryStream = memory,
             ContentType = GetContentType(filepath),
-            Filename = filename
+            Filename = Guid.NewGuid().ToString()
         };
     }
 
@@ -73,6 +75,6 @@ public class FileService : IFileService
 
     private static string GetUniqueFileName(string fileName)
     {
-        return fileName + '_' + DateTimeOffset.Now.ToUnixTimeSeconds();
+        return DateTimeOffset.Now.ToUnixTimeSeconds() + "_" + fileName;
     }
 }

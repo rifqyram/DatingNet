@@ -1,17 +1,22 @@
-using Enigma.DatingNet;
 using Enigma.DatingNet.Extensions;
+using Enigma.DatingNet.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Host.ConfigureLogging(logging =>
+{
+    logging.ClearProviders();
+    logging.AddConsole();
+});
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddRepositories(builder.Configuration);
 builder.Services.AddServices();
 builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddJwtSwaggerAuth();
+builder.Services.AddMiddlewares();
 
 var app = builder.Build();
 
@@ -27,8 +32,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
 app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();
 

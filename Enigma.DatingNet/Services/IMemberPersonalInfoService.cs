@@ -7,4 +7,5 @@ public interface IMemberPersonalInfoService
 {
     Task<MemberPersonalInfoResponse> Create(MemberPersonalInfoRequest request);
     Task<MemberPersonalInfoResponse> GetByMemberId(string memberId);
+    Task<MemberPersonalInfoResponse> Update(MemberPersonalInfoUpdateRequest request);
 }

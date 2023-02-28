@@ -5,7 +5,7 @@ namespace Enigma.DatingNet.Services;
 public interface IFileService
 {
     Task<string> SaveFile(IFormFile file);
-    Task<FileDownloadResponse> DownloadFile(string filepath, string filename);
+    Task<FileDownloadResponse> DownloadFile(string filepath);
     void RemoveFile(string filepath);
     bool CheckIfExist(string filepath);
 }
